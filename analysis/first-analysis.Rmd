@@ -1,0 +1,206 @@
+---
+title: "Multivariable regression"
+output:
+  html_document:
+  highlight: tango
+toc: true
+toc_float:
+  collapsed: true
+---
+
+
+Please go to Session on the RStudio Menu, and click on 'Restart R and Clear Output'.
+
+
+
+
+# MULTIVARIABLE REGRESSION
+
+
+We will use the same dataset as the previous exercise - The Human Freedom Index from the **openintro** package.
+
+In this lab, you'll be analysing data from the Human Freedom Index reports.
+Your aim will be to summarize a few of the relationships within the data both graphically and numerically in order to find which variables can help tell a story about freedom.
+
+
+## Getting Started
+
+### Load packages
+
+In this lab, you will explore and visualize the data using the **tidyverse** suite of packages.
+
+The data can be found in the **openintro** package. The **broom** package helps us summarize regression results.
+
+Let's load the packages.
+
+```{r load-packages, message=FALSE}
+library(tidyverse)
+library(openintro)
+library(broom)
+```
+
+
+### The data
+
+The data we're working with is in the openintro package and it's called `hfi`, short for Human Freedom Index.
+
+The dataset spans a lot of years, but we are only interested in data from year 2016.
+    Filter the data `hfi` data frame for year 2016, select the six variables, and assign the result to a data frame named `hfi_2016`.
+
+```{r}
+data(hfi)
+hfi_2016 <- hfi %>% 
+  filter(year == 2016)
+```
+
+
+
+------------------------------------------------------------------------
+
+## EXERCISES
+
+1\. Copy your model from the previous exercise that uses  `pf_expression_control` to predict Human Freedom or `hf_score`. Using the `tidy` command, what does the slope tell us in the context of the relationship between human freedom and expression control in the country?
+
+```{r cor}
+hfi_2016 %>%
+  summarise(cor(pf_expression_control, hf_score))
+
+m2 <- lm(hf_score ~ pf_expression_control, data = hfi_2016)
+tidy(m2)
+#y = 5.05 + 0.368x
+#For every 1 unit increase in pf_expression_control, we expect a country`s mean human freedom score to increase 0.368 units.
+
+ggplot(data = hfi_2016, aes(x = pf_expression_control, y = hf_score)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+```
+
+$$
+  \hat{y} = 5.05 + 0.368 \times pf\_expression\_control
+$$
+
+2\. Add region to the model from Q1 using `lm(hf_score ~ pf_expression_control + region, data = hfi_2016)`. What do you notice about the slope between human freedom and expression control? How has it changed from the previous model. Do you think region is a confounder, and think about reasons why this might be so? 
+
+```{r 2}
+
+m3 <- lm(hf_score ~ pf_expression_control + region, data = hfi_2016)
+tidy(m3)
+
+ggplot(data = hfi_2016, aes(x = pf_expression_control, y = hf_score)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+ggplot(data = hfi_2016, aes(x = pf_expression_control, y = hf_score, color = region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+#The slope has decreased slightly. The region could be associated with the hf_score in terms of different financial resources. it could also be related to the pf_expression_control, as the media control is different in the different countries. It would therefore be possible that region is a confounder.
+```
+
+3\. Compare the $R^2$ for the 2 models from Q1 and Q2. Is there an increase by adding region? Think about the definition of $R^2$. What does this mean in this context?
+
+```{r}
+glance(m2)
+glance(m3)
+
+#increase
+#R^2 is a statistical measure of how well a regression line approximates real data points.
+#Since the R^2 in our multivariable model gets closer to 1, this model better describes the data
+```
+
+4.\ Fit a new model that uses  `ef_money` or monetary measure to predict `hf_score`.  What does the slope tell us in the context of the relationship between human freedom and the economy in the country? 
+
+```{r 4}
+
+m4 <- lm(hf_score ~ ef_money, data = hfi_2016)
+tidy(m4)
+
+ggplot(data = hfi_2016, aes(x = ef_money, y = hf_score)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+#For every 1 unit increase in ef_money, we expect a country`s mean human freedom score to increase 0.504 units. Thus, there is a correlation between human freedom and economy, but we have to check R^2.
+
+```
+$$
+  \hat{y} = 2.737 + 0.504 \times ef\_money
+$$
+
+5\. Again add region to the model from Q4. Compare the slope and $R^2$ with the model from Q4.
+
+```{r 5}
+
+m5 <- lm(hf_score ~ ef_money + region, data = hfi_2016)
+tidy(m5)
+
+ggplot(data = hfi_2016, aes(x = ef_money, y = hf_score)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+ggplot(data = hfi_2016, aes(x = ef_money, y = hf_score, color = region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+glance(m4)
+glance(m5)
+
+#Again, our slope has decreased but our R^2 has increased.
+```
+
+6\. Finally fit a model with `ef_money` and `pf_expression_control` as exposures and `hf_score` as outcome.  Compare the slope and $R^2$ from the models from Q1. Could `ef_money` be a confounder? 
+
+```{r 6}
+
+m6 <- lm(hf_score ~ ef_money + pf_expression_control, data = hfi_2016)
+tidy(m6)
+
+ggplot(data = hfi_2016, aes(x = ef_money, y = hf_score)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+ggplot(data = hfi_2016, aes(x = pf_expression_control, y = hf_score)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+ggplot(data = hfi_2016, aes(x = ef_money, y = hf_score, color = pf_expression_control)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+ggplot(data = hfi_2016, aes(x = pf_expression_control, y = hf_score, color = ef_money)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+glance(m2)
+glance(m4)
+glance(m6)
+
+#Again, as in our respective multivariable models with "region", our slope has decreased, but our R^2 has increased.
+#ef_money could be a confounder. For example, in the pf_expression_control vs. hf_score graph, where ef_money is shown in shades of blue, it is apparent that data points with a low ef_score collect below the graph and data points with a higher ef_score collect above.
+```
+$$
+  \hat{y} = 2.794 + 0.318 \times ef\_money + 0.296 \times pf\_expression\_control
+$$
+
+7\. Use a linear regression model (and scatter plot) with  `ef_money` as exposure and `pf_expression_control` as outcome, to study whether `ef_money` has an association with `pf_expression_control` as well. This might validate our finding that `ef_money` is a confounder between  `pf_expression_control` as exposure and 
+`hf_score` as outcome from Q6.
+
+```{r 7}
+
+m7 <- lm(pf_expression_control ~ ef_money, data = hfi_2016)
+tidy(m7)
+
+ggplot(data = hfi_2016, aes(x = ef_money, y = pf_expression_control)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+glance(m7)
+
+hfi_2016 %>%
+  summarise(cor(pf_expression_control, ef_money))
+
+hfi_2016 %>%
+  summarise(cor(hf_score, ef_money))
+
+#Due to our very low correlation coefficient between pf_expression_control and ef_money and our subsequent equally low R^2, ef_money is excluded as a confounder.
+```
