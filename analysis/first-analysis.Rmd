@@ -204,3 +204,7 @@ hfi_2016 %>%
 
 #Due to our very low correlation coefficient between pf_expression_control and ef_money and our subsequent equally low R^2, ef_money is excluded as a confounder.
 ```
+
+```{r, echo = FALSE, out.width = "70%", eval=TRUE}
+knitr::include_graphics("https://github.com/allisonhorst/stats-illustrations/blob/master/rstats-artwork/code_hero.jpg?raw=true", dpi = 100)
+```
